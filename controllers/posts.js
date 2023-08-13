@@ -11,8 +11,8 @@ const { JWT_SECRET } = process.env;
 const { Post } = require('../models');
 
 // GET route for /posts
-router.get('/', passport.authenticate('jwt', { session: false }), (req, res) => {
-    Post.find({})
+router.get('/', (req, res) => {
+    Post.find({}).populate("createdBy")
         .then(posts => {
             if (posts) {
                 return res.json({ posts: posts });
@@ -41,26 +41,26 @@ router.get('/:id/comments/:commentId', (req, res) => {
     console.log('route to get comment', req.params); // { id: 'aklsdjfkalsd', commentId: 'aldmsfaldkmfalkmdf' }
     // find the post
     Post.findById(req.params.id)
-    .then(post => {
-        if (!post) {
-            console.log('post cannot be found');
-            return res.json({ message: 'Post cannot be found'});
-        }
-        // find comment by id
-        const comment = post.comments.id(req.params.commentId); // not sure that works?
-        console.log('---- find comment ----', comment);
+        .then(post => {
+            if (!post) {
+                console.log('post cannot be found');
+                return res.json({ message: 'Post cannot be found' });
+            }
+            // find comment by id
+            const comment = post.comments.id(req.params.commentId); // not sure that works?
+            console.log('---- find comment ----', comment);
 
-        if (!comment) {
-            console.log('comment cannot be found');
-            return res.json({ message: 'Comment cannot be found'});
-        }
-        // return the comment to the user
-        return res.json({ comment }); // res.json({ comment: comment })
-    })
-    .catch(error => {
-        console.log('error', error);
-        return res.json({ message: 'Comment was not found try again...'})
-    });
+            if (!comment) {
+                console.log('comment cannot be found');
+                return res.json({ message: 'Comment cannot be found' });
+            }
+            // return the comment to the user
+            return res.json({ comment }); // res.json({ comment: comment })
+        })
+        .catch(error => {
+            console.log('error', error);
+            return res.json({ message: 'Comment was not found try again...' })
+        });
 });
 
 // GET route for /posts/:id
@@ -81,13 +81,14 @@ router.get('/:id', (req, res) => {
 
 // POST route for /posts/new
 router.post('/new', (req, res) => {
-    const newPost = {
-        title: req.body.title,
-        subtitle: req.body.subtitle,
-        username: req.body.username,
-        content: req.body.content
-    };
-    Post.create(newPost)
+    // const newPost = {
+    //     title: req.body.title,
+    //     subtitle: req.body.subtitle,
+    //     createdBy: req.body.user.id,
+    //     content: req.body.content
+    // };
+
+    Post.create(req.body)
         .then(post => {
             if (post) {
                 console.log('new post was created (object)', post);
